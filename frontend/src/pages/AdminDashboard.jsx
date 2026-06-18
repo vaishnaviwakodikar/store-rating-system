@@ -469,13 +469,15 @@ const AdminDashboard = () => {
           {success && (
             <div className="ad-banner ad-banner-success"><Icon.check />{' '}<p className="success">{success}</p></div>
           )}
-          <form onSubmit={handleAddUser}>
+          <form onSubmit={handleAddUser} autoComplete="off">
             {['name', 'email', 'address', 'password'].map((field) => (
               <div key={field} className="ad-field">
                 <label>{field}</label>
                 <input
                   className="ad-input"
                   type={field === 'password' ? 'password' : field === 'email' ? 'email' : 'text'}
+                  name={`new-user-${field}`}
+                  autoComplete={field === 'password' ? 'new-password' : 'off'}
                   value={userForm[field]}
                   onChange={(e) => setUserForm({ ...userForm, [field]: e.target.value })}
                 />
@@ -487,6 +489,8 @@ const AdminDashboard = () => {
               <select
                 className="ad-select"
                 style={{ width: '100%' }}
+                name="new-user-role"
+                autoComplete="off"
                 value={userForm.role}
                 onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
               >
@@ -510,13 +514,15 @@ const AdminDashboard = () => {
           {success && (
             <div className="ad-banner ad-banner-success"><Icon.check />{' '}<p className="success">{success}</p></div>
           )}
-          <form onSubmit={handleAddStore}>
+          <form onSubmit={handleAddStore} autoComplete="off">
             {['name', 'email', 'address'].map((field) => (
               <div key={field} className="ad-field">
                 <label>{field}</label>
                 <input
                   className="ad-input"
                   type={field === 'email' ? 'email' : 'text'}
+                  name={`new-store-${field}`}
+                  autoComplete="off"
                   value={storeForm[field]}
                   onChange={(e) => setStoreForm({ ...storeForm, [field]: e.target.value })}
                 />
@@ -528,6 +534,8 @@ const AdminDashboard = () => {
               <input
                 className="ad-input"
                 type="number"
+                name="new-store-ownerId"
+                autoComplete="off"
                 value={storeForm.ownerId}
                 onChange={(e) => setStoreForm({ ...storeForm, ownerId: e.target.value })}
               />
