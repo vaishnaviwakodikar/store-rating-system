@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import API from '../utils/api';
 import { validateName, validateEmail, validatePassword, validateAddress } from '../utils/validate';
 
@@ -68,6 +69,20 @@ const ROLE_OPTIONS = [
   { value: 'store_owner', label: 'Store owner' },
 ];
 
+const USER_SORT_FIELDS = [
+  { value: 'name', label: 'Name' },
+  { value: 'email', label: 'Email' },
+  { value: 'address', label: 'Address' },
+  { value: 'role', label: 'Role' },
+];
+
+const STORE_SORT_FIELDS = [
+  { value: 'name', label: 'Name' },
+  { value: 'email', label: 'Email' },
+  { value: 'address', label: 'Address' },
+  { value: 'averageRating', label: 'Avg rating' },
+];
+
 /* Small star-rating readout, ties visually back to the "StoreRater" brand */
 const Stars = ({ value }) => {
   const n = Number(value);
@@ -99,7 +114,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [stores, setStores] = useState([]);
   const [filters, setFilters] = useState({ name: '', email: '', address: '', role: '' });
-  const [sortConfig, setSortConfig] = useState({ key: 'name', dir: 'asc' });
+  const [userSort, setUserSort] = useState({ key: 'name', dir: 'asc' });
+  const [storeSort, setStoreSort] = useState({ key: 'name', dir: 'asc' });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [userForm, setUserForm] = useState({ name: '', email: '', address: '', password: '', role: 'user' });
   const [storeForm, setStoreForm] = useState({ name: '', email: '', address: '', ownerId: '' });
@@ -190,21 +206,43 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleSort = (key) => {
-    setSortConfig((prev) => ({
+  const handleUserSort = (key) => {
+    setUserSort((prev) => ({
       key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc',
     }));
   };
 
-  const sorted = (arr) => [...arr].sort((a, b) => {
-    const val = sortConfig.dir === 'asc' ? 1 : -1;
-    return a[sortConfig.key] > b[sortConfig.key] ? val : -val;
+  const handleStoreSort = (key) => {
+    setStoreSort((prev) => ({
+      key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  const toggleUserSortDir = () => {
+    setUserSort((prev) => ({ ...prev, dir: prev.dir === 'asc' ? 'desc' : 'asc' }));
+  };
+
+  const toggleStoreSortDir = () => {
+    setStoreSort((prev) => ({ ...prev, dir: prev.dir === 'asc' ? 'desc' : 'asc' }));
+  };
+
+  const applySort = (arr, config) => [...arr].sort((a, b) => {
+    const av = a[config.key];
+    const bv = b[config.key];
+    if (av === bv) return 0;
+    const val = config.dir === 'asc' ? 1 : -1;
+    return av > bv ? val : -val;
   });
 
-  const sortArrow = (col) => (sortConfig.key === col ? (sortConfig.dir === 'asc' ? '▲' : '▼') : '');
+  const sortArrow = (config, col) => {
+    if (config.key !== col) return null;
+    return config.dir === 'asc'
+      ? <ChevronUp className="ad-sort-icon" size={13} />
+      : <ChevronDown className="ad-sort-icon" size={13} />;
+  };
 
-  const sortedUsers = sorted(users);
-  const sortedStores = sorted(stores);
+  const sortedUsers = applySort(users, userSort);
+  const sortedStores = applySort(stores, storeSort);
 
   return (
     <div className="ad-shell">
@@ -282,6 +320,21 @@ const AdminDashboard = () => {
           font-size: 13px; cursor: pointer;
         }
         .ad-btn-ghost:hover { color: var(--ink); border-color: var(--ink-line); }
+
+        .ad-sort-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .ad-sort-group label {
+          font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em;
+          text-transform: uppercase; color: var(--muted); white-space: nowrap;
+        }
+        .ad-sort-dir-btn {
+          display: flex; align-items: center; gap: 6px;
+          padding: 9px 12px; border-radius: 7px; border: 1px solid #ddd3b8;
+          background: var(--card); color: var(--ink-soft); font-family: inherit;
+          font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .ad-sort-dir-btn:hover { border-color: var(--ink-line); }
+        .ad-sort-dir-btn .ad-sort-arrow { display: inline-flex; color: var(--gold); }
+        .ad-sort-icon { display: inline-block; vertical-align: -2px; }
 
         .ad-table-wrap {
           background: var(--card); border: 1px solid #e9e1cd; border-radius: 12px;
@@ -398,6 +451,21 @@ const AdminDashboard = () => {
             {hasActiveFilters && (
               <button className="ad-btn-ghost" onClick={clearFilters}>Clear filters</button>
             )}
+            <div className="ad-sort-group">
+              <label htmlFor="user-sort-field">Sort by</label>
+              <select
+                id="user-sort-field"
+                className="ad-select"
+                value={userSort.key}
+                onChange={(e) => setUserSort((prev) => ({ ...prev, key: e.target.value }))}
+              >
+                {USER_SORT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+              <button type="button" className="ad-sort-dir-btn" onClick={toggleUserSortDir}>
+                {userSort.dir === 'asc' ? 'Ascending' : 'Descending'}
+                <span className="ad-sort-arrow">{userSort.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</span>
+              </button>
+            </div>
           </div>
 
           <div className="ad-table-wrap">
@@ -405,9 +473,9 @@ const AdminDashboard = () => {
               <thead>
                 <tr>
                   {['name', 'email', 'address', 'role'].map((col) => (
-                    <th key={col} onClick={() => handleSort(col)}>
+                    <th key={col} onClick={() => handleUserSort(col)}>
                       {col.charAt(0).toUpperCase() + col.slice(1)}
-                      <span>{sortArrow(col)}</span>
+                      <span>{sortArrow(userSort, col)}</span>
                     </th>
                   ))}
                 </tr>
@@ -431,31 +499,50 @@ const AdminDashboard = () => {
 
       {/* Stores */}
       {activeTab === 'stores' && (
-        <div className="ad-table-wrap">
-          <table className="ad-table">
-            <thead>
-              <tr>
-                {['name', 'email', 'address', 'averageRating'].map((col) => (
-                  <th key={col} onClick={() => handleSort(col)}>
-                    {col === 'averageRating' ? 'Avg Rating' : col.charAt(0).toUpperCase() + col.slice(1)}
-                    <span>{sortArrow(col)}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sortedStores.length === 0 ? (
-                <tr><td colSpan={4} className="ad-empty">No stores registered yet.</td></tr>
-              ) : sortedStores.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.name}</td>
-                  <td>{s.email}</td>
-                  <td>{s.address}</td>
-                  <td><Stars value={s.averageRating} /></td>
+        <div>
+          <div className="ad-toolbar">
+            <div className="ad-sort-group">
+              <label htmlFor="store-sort-field">Sort by</label>
+              <select
+                id="store-sort-field"
+                className="ad-select"
+                value={storeSort.key}
+                onChange={(e) => setStoreSort((prev) => ({ ...prev, key: e.target.value }))}
+              >
+                {STORE_SORT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              </select>
+              <button type="button" className="ad-sort-dir-btn" onClick={toggleStoreSortDir}>
+                {storeSort.dir === 'asc' ? 'Ascending' : 'Descending'}
+                <span className="ad-sort-arrow">{storeSort.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</span>
+              </button>
+            </div>
+          </div>
+          <div className="ad-table-wrap">
+            <table className="ad-table">
+              <thead>
+                <tr>
+                  {['name', 'email', 'address', 'averageRating'].map((col) => (
+                    <th key={col} onClick={() => handleStoreSort(col)}>
+                      {col === 'averageRating' ? 'Avg Rating' : col.charAt(0).toUpperCase() + col.slice(1)}
+                      <span>{sortArrow(storeSort, col)}</span>
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sortedStores.length === 0 ? (
+                  <tr><td colSpan={4} className="ad-empty">No stores registered yet.</td></tr>
+                ) : sortedStores.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.name}</td>
+                    <td>{s.email}</td>
+                    <td>{s.address}</td>
+                    <td><Stars value={s.averageRating} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
