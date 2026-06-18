@@ -1,20 +1,14 @@
-import { useState } from 'react';
-import { LayoutGrid, Store, KeyRound, LogOut, Menu, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { LayoutGrid, Store, KeyRound, LogOut, Menu, Star, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, NavLink } from 'react-router-dom';
 
-/* ---------------------------------------------------------------------- */
-/*  Nav config — one place to add/remove items per role                   */
-/* ---------------------------------------------------------------------- */
 const ROLE_NAV = {
   admin: [{ to: '/admin/dashboard', label: 'Dashboard', icon: 'grid' }],
   user: [{ to: '/stores', label: 'Browse Stores', icon: 'store' }],
   store_owner: [{ to: '/owner/dashboard', label: 'My Store', icon: 'store' }],
 };
 
-/* ---------------------------------------------------------------------- */
-/*  Icon lookup — maps nav item icon keys to lucide-react components      */
-/* ---------------------------------------------------------------------- */
 const ICONS = {
   grid: LayoutGrid,
   store: Store,
@@ -29,22 +23,40 @@ const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 768
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
   );
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setCollapsed(true);
+        setDrawerOpen(false);
+      } else if (window.innerWidth < 1024) {
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+    setDrawerOpen(false);
   };
 
   const navItems = ROLE_NAV[user?.role] || [];
   const initials = (user?.name || user?.email || '?').trim().charAt(0).toUpperCase();
   const roleLabel = user?.role ? user.role.replace('_', ' ') : null;
 
+  const iconProps = {
+    style: { stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' },
+  };
+
   return (
     <div className="sr-shell">
       <style>{`
-        /* NOTE: move this @import to your global stylesheet/index.html in production */
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
 
         .sr-shell {
@@ -62,6 +74,7 @@ const Layout = ({ children }) => {
           font-family: 'Space Grotesk', system-ui, sans-serif;
         }
 
+        /* ── Sidebar (desktop/tablet) ── */
         .sr-sidebar {
           width: 240px;
           flex-shrink: 0;
@@ -70,11 +83,86 @@ const Layout = ({ children }) => {
           display: flex;
           flex-direction: column;
           padding: 22px 16px 18px;
-          position: relative;
           transition: width 0.22s ease;
         }
         .sr-sidebar.is-collapsed { width: 76px; }
 
+        /* ── Overlay drawer (mobile) ── */
+        .sr-overlay {
+          display: none;
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+        }
+        .sr-overlay.is-open { display: block; }
+        .sr-overlay-backdrop {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.45);
+        }
+        .sr-drawer {
+          position: absolute;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: 260px;
+          background: var(--ink);
+          color: var(--paper);
+          display: flex;
+          flex-direction: column;
+          padding: 22px 16px 18px;
+          transform: translateX(-100%);
+          transition: transform 0.24s ease;
+        }
+        .sr-overlay.is-open .sr-drawer { transform: translateX(0); }
+
+        /* ── Bottom nav (mobile) ── */
+        .sr-bottom-nav {
+          display: none;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 60px;
+          background: var(--ink);
+          border-top: 1px solid var(--ink-line);
+          z-index: 50;
+          align-items: center;
+          justify-content: space-around;
+          padding: 0 4px;
+        }
+
+        .sr-bottom-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          flex: 1;
+          height: 100%;
+          background: transparent;
+          border: none;
+          color: var(--muted);
+          font-family: inherit;
+          font-size: 9px;
+          font-weight: 500;
+          text-decoration: none;
+          letter-spacing: 0.04em;
+          cursor: pointer;
+          transition: color 0.15s ease;
+        }
+        .sr-bottom-item:hover,
+        .sr-bottom-item.is-active { color: var(--gold); }
+        .sr-bottom-item svg { stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ── Main content ── */
+        .sr-main {
+          flex: 1;
+          padding: 30px;
+          overflow-y: auto;
+        }
+
+        /* ── Shared sidebar/drawer elements ── */
         .sr-toggle {
           align-self: flex-end;
           background: transparent;
@@ -169,7 +257,6 @@ const Layout = ({ children }) => {
           flex-direction: column;
           gap: 4px;
         }
-
         .sr-link {
           display: flex;
           align-items: center;
@@ -190,7 +277,6 @@ const Layout = ({ children }) => {
         .sr-link-icon svg { stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
         .sr-link-label { flex: 1; }
         .sr-sidebar.is-collapsed .sr-link-label { display: none; }
-
         .sr-link-mark {
           flex-shrink: 0;
           width: 6px;
@@ -237,6 +323,7 @@ const Layout = ({ children }) => {
           font-weight: 600;
           cursor: pointer;
           transition: filter 0.15s ease, transform 0.1s ease;
+          white-space: nowrap;
         }
         .sr-logout:hover { filter: brightness(1.08); }
         .sr-logout:active { transform: scale(0.97); }
@@ -244,33 +331,40 @@ const Layout = ({ children }) => {
 
         .sr-link:focus-visible,
         .sr-logout:focus-visible,
-        .sr-toggle:focus-visible {
+        .sr-toggle:focus-visible,
+        .sr-bottom-item:focus-visible {
           outline: 2px solid var(--gold);
           outline-offset: 2px;
         }
 
-        .sr-main {
-          flex: 1;
-          padding: 30px;
-          overflow-y: auto;
+        /* ── Responsive breakpoints ── */
+        @media (max-width: 767px) {
+          .sr-sidebar { display: none; }
+          .sr-bottom-nav { display: flex; }
+          .sr-main {
+            padding: 16px 14px 76px; /* bottom padding clears nav bar */
+          }
         }
 
-        @media (max-width: 768px) {
-          .sr-main { padding: 20px 16px; }
+        @media (min-width: 768px) {
+          .sr-overlay { display: none !important; }
+          .sr-bottom-nav { display: none !important; }
+          .sr-main { padding: 30px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .sr-sidebar, .sr-link, .sr-link-mark, .sr-logout, .sr-toggle { transition: none !important; }
+          .sr-sidebar, .sr-drawer, .sr-link, .sr-link-mark, .sr-logout, .sr-toggle { transition: none !important; }
         }
       `}</style>
 
+      {/* ── Desktop/tablet sidebar ── */}
       <aside className={`sr-sidebar${collapsed ? ' is-collapsed' : ''}`}>
         <button
           className="sr-toggle"
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <Menu size={18} strokeWidth={1.8} strokeLinecap="round" />
+          <Menu size={18} strokeWidth={1.8} />
         </button>
 
         <div className="sr-brand">
@@ -296,10 +390,7 @@ const Layout = ({ children }) => {
               className={({ isActive }) => `sr-link${isActive ? ' is-active' : ''}`}
             >
               <span className="sr-link-icon">
-                <NavIcon
-                  name={item.icon}
-                  style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }}
-                />
+                <NavIcon name={item.icon} {...iconProps} />
               </span>
               <span className="sr-link-label">{item.label}</span>
               <span className="sr-link-mark" />
@@ -311,7 +402,7 @@ const Layout = ({ children }) => {
             className={({ isActive }) => `sr-link${isActive ? ' is-active' : ''}`}
           >
             <span className="sr-link-icon">
-              <KeyRound style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
+              <KeyRound {...iconProps} />
             </span>
             <span className="sr-link-label">Change Password</span>
             <span className="sr-link-mark" />
@@ -321,10 +412,111 @@ const Layout = ({ children }) => {
         <div className="sr-tear" aria-hidden="true" />
 
         <button className="sr-logout" onClick={handleLogout}>
-          <LogOut style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
+          <LogOut {...iconProps} />
           <span>Log out</span>
         </button>
       </aside>
+
+      {/* ── Mobile overlay drawer ── */}
+      <div
+        className={`sr-overlay${drawerOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        <div className="sr-overlay-backdrop" onClick={() => setDrawerOpen(false)} />
+        <div className="sr-drawer">
+          <button
+            className="sr-toggle"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} strokeWidth={1.8} />
+          </button>
+
+          <div className="sr-brand">
+            <span className="sr-brand-mark">
+              <Star size={20} fill="currentColor" />
+            </span>
+            <span className="sr-brand-name">StoreRater</span>
+          </div>
+
+          <div className="sr-account">
+            <span className="sr-avatar">{initials}</span>
+            <div className="sr-account-info">
+              <span className="sr-account-name">{user?.name || user?.email || 'Guest'}</span>
+              {roleLabel && <span className="sr-role-pill">{roleLabel}</span>}
+            </div>
+          </div>
+
+          <nav className="sr-nav">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setDrawerOpen(false)}
+                className={({ isActive }) => `sr-link${isActive ? ' is-active' : ''}`}
+              >
+                <span className="sr-link-icon">
+                  <NavIcon name={item.icon} {...iconProps} />
+                </span>
+                <span className="sr-link-label">{item.label}</span>
+                <span className="sr-link-mark" />
+              </NavLink>
+            ))}
+
+            <NavLink
+              to="/change-password"
+              onClick={() => setDrawerOpen(false)}
+              className={({ isActive }) => `sr-link${isActive ? ' is-active' : ''}`}
+            >
+              <span className="sr-link-icon">
+                <KeyRound {...iconProps} />
+              </span>
+              <span className="sr-link-label">Change Password</span>
+              <span className="sr-link-mark" />
+            </NavLink>
+          </nav>
+
+          <div className="sr-tear" aria-hidden="true" />
+
+          <button className="sr-logout" onClick={handleLogout}>
+            <LogOut {...iconProps} />
+            <span>Log out</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Mobile bottom nav bar ── */}
+      <nav className="sr-bottom-nav" aria-label="Main navigation">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) => `sr-bottom-item${isActive ? ' is-active' : ''}`}
+          >
+            <NavIcon name={item.icon} size={22} />
+            <span>{item.label.split(' ')[0]}</span>
+          </NavLink>
+        ))}
+
+        <NavLink
+          to="/change-password"
+          className={({ isActive }) => `sr-bottom-item${isActive ? ' is-active' : ''}`}
+        >
+          <KeyRound size={22} {...iconProps} />
+          <span>Password</span>
+        </NavLink>
+
+        <button
+          className="sr-bottom-item"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu size={22} strokeWidth={1.7} style={{ stroke: 'currentColor', fill: 'none' }} />
+          <span>More</span>
+        </button>
+      </nav>
 
       <main className="sr-main">{children}</main>
     </div>
