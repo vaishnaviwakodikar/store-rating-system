@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LayoutGrid, Store, KeyRound, LogOut, Menu, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, NavLink } from 'react-router-dom';
 
@@ -12,50 +13,16 @@ const ROLE_NAV = {
 };
 
 /* ---------------------------------------------------------------------- */
-/*  Tiny inline icon set — no external icon package required              */
+/*  Icon lookup — maps nav item icon keys to lucide-react components      */
 /* ---------------------------------------------------------------------- */
-const Icon = {
-  grid: (p) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <rect x="3.5" y="3.5" width="7" height="7" rx="1.4" />
-      <rect x="13.5" y="3.5" width="7" height="7" rx="1.4" />
-      <rect x="3.5" y="13.5" width="7" height="7" rx="1.4" />
-      <rect x="13.5" y="13.5" width="7" height="7" rx="1.4" />
-    </svg>
-  ),
-  store: (p) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <path d="M4 9.5 5.2 4h13.6l1.2 5.5" />
-      <path d="M4 9.5a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0" />
-      <path d="M5.5 9.8V20h13V9.8" />
-      <path d="M10 20v-5.5h4V20" />
-    </svg>
-  ),
-  key: (p) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <circle cx="8" cy="14.5" r="4" />
-      <path d="M11 11.5 19 3.5" />
-      <path d="M16 6.5l2.5 2.5" />
-      <path d="M13.5 9l2 2" />
-    </svg>
-  ),
-  logout: (p) => (
-    <svg viewBox="0 0 24 24" width="17" height="17" {...p}>
-      <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />
-      <path d="M21 12H10" />
-      <path d="M16.5 7.5 21 12l-4.5 4.5" />
-    </svg>
-  ),
-  menu: (p) => (
-    <svg viewBox="0 0 24 24" width="18" height="18" {...p}>
-      <path d="M4 6.5h16M4 12h16M4 17.5h16" />
-    </svg>
-  ),
-  star: (p) => (
-    <svg viewBox="0 0 24 24" width="20" height="20" {...p}>
-      <path d="M12 3.5l2.4 5.1 5.5.6-4.1 3.8 1.1 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.5-.6L12 3.5z" />
-    </svg>
-  ),
+const ICONS = {
+  grid: LayoutGrid,
+  store: Store,
+};
+
+const NavIcon = ({ name, ...props }) => {
+  const Component = ICONS[name];
+  return Component ? <Component {...props} /> : null;
 };
 
 const Layout = ({ children }) => {
@@ -303,12 +270,12 @@ const Layout = ({ children }) => {
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <Icon.menu style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round' }} />
+          <Menu size={18} strokeWidth={1.8} strokeLinecap="round" />
         </button>
 
         <div className="sr-brand">
           <span className="sr-brand-mark">
-            <Icon.star style={{ fill: 'currentColor' }} />
+            <Star size={20} fill="currentColor" />
           </span>
           <span className="sr-brand-name">StoreRater</span>
         </div>
@@ -329,9 +296,10 @@ const Layout = ({ children }) => {
               className={({ isActive }) => `sr-link${isActive ? ' is-active' : ''}`}
             >
               <span className="sr-link-icon">
-                {Icon[item.icon] && Icon[item.icon]({
-                  style: { stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' },
-                })}
+                <NavIcon
+                  name={item.icon}
+                  style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }}
+                />
               </span>
               <span className="sr-link-label">{item.label}</span>
               <span className="sr-link-mark" />
@@ -343,7 +311,7 @@ const Layout = ({ children }) => {
             className={({ isActive }) => `sr-link${isActive ? ' is-active' : ''}`}
           >
             <span className="sr-link-icon">
-              <Icon.key style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
+              <KeyRound style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
             </span>
             <span className="sr-link-label">Change Password</span>
             <span className="sr-link-mark" />
@@ -353,7 +321,7 @@ const Layout = ({ children }) => {
         <div className="sr-tear" aria-hidden="true" />
 
         <button className="sr-logout" onClick={handleLogout}>
-          <Icon.logout style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
+          <LogOut style={{ stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }} />
           <span>Log out</span>
         </button>
       </aside>

@@ -1,35 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Star, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import API from '../utils/api';
-
-const Icon = {
-  star: (p) => (
-    <svg viewBox="0 0 24 24" width="20" height="20" {...p}>
-      <path d="M12 3.5l2.4 5.1 5.5.6-4.1 3.8 1.1 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.5-.6L12 3.5z" />
-    </svg>
-  ),
-  eye: (p) => (
-    <svg viewBox="0 0 24 24" width="16" height="16" {...p}>
-      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  eyeOff: (p) => (
-    <svg viewBox="0 0 24 24" width="16" height="16" {...p}>
-      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
-      <circle cx="12" cy="12" r="3" />
-      <path d="M4 4l16 16" />
-    </svg>
-  ),
-  alert: (p) => (
-    <svg viewBox="0 0 24 24" width="15" height="15" {...p}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v5.2" />
-      <circle cx="12" cy="16" r="0.6" fill="currentColor" />
-    </svg>
-  ),
-};
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -244,7 +217,7 @@ const LoginPage = () => {
 
       <div className="lp-card">
         <div className="lp-stub">
-          <span className="lp-seal"><Icon.star style={{ fill: 'currentColor' }} /></span>
+          <span className="lp-seal"><Star size={20} fill="currentColor" /></span>
           <span className="lp-stub-text">StoreRater</span>
           <span className="lp-punch top" />
           <span className="lp-punch bottom" />
@@ -256,7 +229,7 @@ const LoginPage = () => {
           <p className="lp-sub">Rate, manage, or browse stores from your account.</p>
 
           {error && (
-            <div key={error} className="lp-banner"><Icon.alert /><p className="error">{error}</p></div>
+            <div key={error} className="lp-banner"><AlertCircle size={15} /><p className="error">{error}</p></div>
           )}
 
           <form onSubmit={handleLogin}>
@@ -288,7 +261,7 @@ const LoginPage = () => {
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   <span key={showPassword ? 'off' : 'on'} className="lp-eye-icon">
-                    {showPassword ? <Icon.eyeOff /> : <Icon.eye />}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </span>
                 </button>
               </div>
