@@ -3,9 +3,6 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 import API from '../utils/api';
 import { validateName, validateEmail, validatePassword, validateAddress } from '../utils/validate';
 
-/* ---------------------------------------------------------------------- */
-/*  Tiny inline icon set — kept local so this file stays drop-in portable */
-/* ---------------------------------------------------------------------- */
 const Icon = {
   grid: (p) => (
     <svg viewBox="0 0 24 24" width="16" height="16" {...p}>
@@ -56,39 +53,36 @@ const Icon = {
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard', icon: 'grid' },
-  { key: 'users', label: 'Users', icon: 'user' },
-  { key: 'stores', label: 'Stores', icon: 'store' },
-  { key: 'addUser', label: 'Add User', icon: 'plusCircle' },
-  { key: 'addStore', label: 'Add Store', icon: 'plusCircle' },
+  { key: 'users',     label: 'Users',     icon: 'user' },
+  { key: 'stores',    label: 'Stores',    icon: 'store' },
+  { key: 'addUser',   label: 'Add User',  icon: 'plusCircle' },
+  { key: 'addStore',  label: 'Add Store', icon: 'plusCircle' },
 ];
 
 const ROLE_OPTIONS = [
-  { value: '', label: 'All roles' },
-  { value: 'user', label: 'User' },
-  { value: 'admin', label: 'Admin' },
+  { value: '',            label: 'All roles' },
+  { value: 'user',        label: 'User' },
+  { value: 'admin',       label: 'Admin' },
   { value: 'store_owner', label: 'Store owner' },
 ];
 
 const USER_SORT_FIELDS = [
-  { value: 'name', label: 'Name' },
-  { value: 'email', label: 'Email' },
+  { value: 'name',    label: 'Name' },
+  { value: 'email',   label: 'Email' },
   { value: 'address', label: 'Address' },
-  { value: 'role', label: 'Role' },
+  { value: 'role',    label: 'Role' },
 ];
 
 const STORE_SORT_FIELDS = [
-  { value: 'name', label: 'Name' },
-  { value: 'email', label: 'Email' },
-  { value: 'address', label: 'Address' },
+  { value: 'name',          label: 'Name' },
+  { value: 'email',         label: 'Email' },
+  { value: 'address',       label: 'Address' },
   { value: 'averageRating', label: 'Avg rating' },
 ];
 
-/* Small star-rating readout, ties visually back to the "StoreRater" brand */
 const Stars = ({ value }) => {
   const n = Number(value);
-  if (!n || Number.isNaN(n)) {
-    return <span className="ad-norating">Not yet rated</span>;
-  }
+  if (!n || Number.isNaN(n)) return <span className="ad-norating">Not yet rated</span>;
   const filled = Math.round(n);
   return (
     <span className="ad-stars">
@@ -110,75 +104,50 @@ const Stars = ({ value }) => {
 };
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({});
-  const [users, setUsers] = useState([]);
-  const [stores, setStores] = useState([]);
-  const [filters, setFilters] = useState({ name: '', email: '', address: '', role: '' });
-  const [userSort, setUserSort] = useState({ key: 'name', dir: 'asc' });
+  const [stats, setStats]       = useState({});
+  const [users, setUsers]       = useState([]);
+  const [stores, setStores]     = useState([]);
+  const [filters, setFilters]   = useState({ name: '', email: '', address: '', role: '' });
+  const [userSort, setUserSort]   = useState({ key: 'name', dir: 'asc' });
   const [storeSort, setStoreSort] = useState({ key: 'name', dir: 'asc' });
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [userForm, setUserForm] = useState({ name: '', email: '', address: '', password: '', role: 'user' });
+  const [userForm, setUserForm]   = useState({ name: '', email: '', address: '', password: '', role: 'user' });
   const [storeForm, setStoreForm] = useState({ name: '', email: '', address: '', ownerId: '' });
-  const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState('');
+  const [errors, setErrors]     = useState({});
+  const [success, setSuccess]   = useState('');
 
-  useEffect(() => {
-    fetchStats();
-    fetchUsers();
-    fetchStores();
-  }, []);
+  useEffect(() => { fetchStats(); fetchUsers(); fetchStores(); }, []);
 
-  // Auto-dismiss a success banner instead of letting it sit indefinitely
   useEffect(() => {
     if (!success) return;
     const t = setTimeout(() => setSuccess(''), 3500);
     return () => clearTimeout(t);
   }, [success]);
 
-  const fetchStats = async () => {
-    const res = await API.get('/admin/dashboard');
-    setStats(res.data);
-  };
+  const fetchStats  = async () => { const res = await API.get('/admin/dashboard'); setStats(res.data); };
+  const fetchUsers  = async () => { const res = await API.get('/admin/users', { params: filters }); setUsers(res.data); };
+  const fetchStores = async () => { const res = await API.get('/admin/stores'); setStores(res.data); };
 
-  const fetchUsers = async () => {
-    const res = await API.get('/admin/users', { params: filters });
-    setUsers(res.data);
-  };
-
-  const fetchStores = async () => {
-    const res = await API.get('/admin/stores');
-    setStores(res.data);
-  };
-
-  const handleFilterKeyDown = (e) => {
-    if (e.key === 'Enter') fetchUsers();
-  };
-
-  const clearFilters = () => {
-    setFilters({ name: '', email: '', address: '', role: '' });
-    fetchUsers();
-  };
-
+  const handleFilterKeyDown = (e) => { if (e.key === 'Enter') fetchUsers(); };
+  const clearFilters = () => { setFilters({ name: '', email: '', address: '', role: '' }); fetchUsers(); };
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
   const handleAddUser = async (e) => {
     e.preventDefault();
     const newErrors = {
-      name: validateName(userForm.name),
-      email: validateEmail(userForm.email),
+      name:     validateName(userForm.name),
+      email:    validateEmail(userForm.email),
       password: validatePassword(userForm.password),
-      address: validateAddress(userForm.address),
+      address:  validateAddress(userForm.address),
     };
     setErrors(newErrors);
     if (Object.values(newErrors).some((e) => e)) return;
-
     try {
       await API.post('/admin/users', userForm);
       setSuccess('User added successfully!');
       setErrors({});
       setUserForm({ name: '', email: '', address: '', password: '', role: 'user' });
-      fetchUsers();
-      fetchStats();
+      fetchUsers(); fetchStats();
     } catch (err) {
       setErrors({ api: err.response?.data?.message || 'Failed to add user' });
     }
@@ -187,109 +156,98 @@ const AdminDashboard = () => {
   const handleAddStore = async (e) => {
     e.preventDefault();
     const newErrors = {
-      name: validateName(storeForm.name),
-      email: validateEmail(storeForm.email),
+      name:    validateName(storeForm.name),
+      email:   validateEmail(storeForm.email),
       address: validateAddress(storeForm.address),
     };
     setErrors(newErrors);
     if (Object.values(newErrors).some((e) => e)) return;
-
     try {
       await API.post('/admin/stores', storeForm);
       setSuccess('Store added successfully!');
       setErrors({});
       setStoreForm({ name: '', email: '', address: '', ownerId: '' });
-      fetchStores();
-      fetchStats();
+      fetchStores(); fetchStats();
     } catch (err) {
       setErrors({ api: err.response?.data?.message || 'Failed to add store' });
     }
   };
 
-  const handleUserSort = (key) => {
-    setUserSort((prev) => ({
-      key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc',
-    }));
-  };
+  const handleUserSort  = (key) => setUserSort((p) => ({ key, dir: p.key === key && p.dir === 'asc' ? 'desc' : 'asc' }));
+  const handleStoreSort = (key) => setStoreSort((p) => ({ key, dir: p.key === key && p.dir === 'asc' ? 'desc' : 'asc' }));
+  const toggleUserSortDir  = () => setUserSort((p) => ({ ...p, dir: p.dir === 'asc' ? 'desc' : 'asc' }));
+  const toggleStoreSortDir = () => setStoreSort((p) => ({ ...p, dir: p.dir === 'asc' ? 'desc' : 'asc' }));
 
-  const handleStoreSort = (key) => {
-    setStoreSort((prev) => ({
-      key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc',
-    }));
-  };
-
-  const toggleUserSortDir = () => {
-    setUserSort((prev) => ({ ...prev, dir: prev.dir === 'asc' ? 'desc' : 'asc' }));
-  };
-
-  const toggleStoreSortDir = () => {
-    setStoreSort((prev) => ({ ...prev, dir: prev.dir === 'asc' ? 'desc' : 'asc' }));
-  };
-
-  const applySort = (arr, config) => [...arr].sort((a, b) => {
-    const av = a[config.key];
-    const bv = b[config.key];
+  const applySort = (arr, cfg) => [...arr].sort((a, b) => {
+    const av = a[cfg.key], bv = b[cfg.key];
     if (av === bv) return 0;
-    const val = config.dir === 'asc' ? 1 : -1;
-    return av > bv ? val : -val;
+    return (av > bv ? 1 : -1) * (cfg.dir === 'asc' ? 1 : -1);
   });
 
-  const sortArrow = (config, col) => {
-    if (config.key !== col) return null;
-    return config.dir === 'asc'
+  const sortArrow = (cfg, col) => {
+    if (cfg.key !== col) return null;
+    return cfg.dir === 'asc'
       ? <ChevronUp className="ad-sort-icon" size={13} />
       : <ChevronDown className="ad-sort-icon" size={13} />;
   };
 
-  const sortedUsers = applySort(users, userSort);
+  const sortedUsers  = applySort(users, userSort);
   const sortedStores = applySort(stores, storeSort);
 
   return (
     <div className="ad-shell">
       <style>{`
+        /* ── tokens ── */
         .ad-shell {
-          --ink: #15291f;
-          --ink-soft: #1d3527;
-          --ink-line: #2c4636;
-          --muted: #7d8f83;
-          --paper: #f6f1e7;
-          --card: #fffdf8;
-          --gold: #d9a440;
-          --gold-soft: #f1d9a2;
-          --danger: #c1502f;
-          --ok: #3f7d58;
-          font-family: 'Space Grotesk', system-ui, sans-serif;
-          color: var(--ink);
+          --ink:#15291f; --ink-soft:#1d3527; --ink-line:#2c4636;
+          --muted:#7d8f83; --paper:#f6f1e7; --card:#fffdf8;
+          --gold:#d9a440; --gold-soft:#f1d9a2;
+          --danger:#c1502f; --ok:#3f7d58;
+          font-family:'Space Grotesk',system-ui,sans-serif;
+          color:var(--ink);
         }
-        .ad-head { margin-bottom: 22px; }
-        .ad-head h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: 0.1px; }
-        .ad-head p { margin: 0; color: var(--muted); font-size: 13.5px; }
 
-        .ad-tabs { display: flex; gap: 22px; border-bottom: 1px solid #e4dcc8; }
+        /* ── header ── */
+        .ad-head { margin-bottom: 20px; }
+        .ad-head h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: 0.1px; }
+        .ad-head p  { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+        /* ── tabs — horizontal scroll on mobile ── */
+        .ad-tabs {
+          display: flex; gap: 4px;
+          border-bottom: 1px solid #e4dcc8;
+          overflow-x: auto; scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+        .ad-tabs::-webkit-scrollbar { display: none; }
         .ad-tab {
           display: flex; align-items: center; gap: 7px;
           background: none; border: none; cursor: pointer;
-          padding: 0 2px 12px;
+          padding: 0 10px 12px;
           font-family: inherit; font-size: 13.5px; font-weight: 600;
-          color: var(--muted);
-          border-bottom: 2px solid transparent;
-          transition: color 0.15s ease, border-color 0.15s ease;
+          color: var(--muted); border-bottom: 2px solid transparent;
+          transition: color .15s, border-color .15s;
+          white-space: nowrap; flex-shrink: 0;
         }
         .ad-tab svg { stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-        .ad-tab:hover { color: var(--ink-soft); }
+        .ad-tab:hover    { color: var(--ink-soft); }
         .ad-tab.is-active { color: var(--ink); border-color: var(--gold); }
 
         .ad-tear {
-          position: relative; height: 1px; margin: 0 0 24px;
+          height: 1px; margin: 0 0 24px;
           background: repeating-linear-gradient(to right, #e4dcc8 0 6px, transparent 6px 11px);
         }
 
-        .ad-stats { display: flex; gap: 18px; flex-wrap: wrap; }
+        /* ── stat cards — responsive grid ── */
+        .ad-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 14px;
+        }
         .ad-stat-card {
           background: var(--card); border: 1px solid #e9e1cd; border-radius: 12px;
-          padding: 18px 20px; flex: 1; min-width: 170px;
-          box-shadow: 0 2px 10px rgba(21,41,31,0.06);
-          display: flex; flex-direction: column; gap: 10px;
+          padding: 16px 18px; box-shadow: 0 2px 10px rgba(21,41,31,.06);
+          display: flex; flex-direction: column; gap: 8px;
         }
         .ad-stat-icon {
           width: 30px; height: 30px; border-radius: 50%; background: var(--ink);
@@ -299,85 +257,104 @@ const AdminDashboard = () => {
         .ad-stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; line-height: 1; }
         .ad-stat-label { color: var(--muted); font-size: 12.5px; }
 
-        .ad-toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        /* ── dashboard recent grid ── */
+        .ad-recent-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 22px; margin-top: 26px;
+        }
+        .ad-recent-section h3 {
+          margin: 0 0 10px; font-size: 14px; font-weight: 700; letter-spacing: .04em;
+          display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* ── toolbar — wraps on small screens ── */
+        .ad-toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
         .ad-input, .ad-select {
           padding: 9px 11px; border-radius: 7px; border: 1px solid #ddd3b8;
           font-size: 13.5px; font-family: inherit; background: var(--card); color: var(--ink);
-          min-width: 140px;
+          min-width: 0; flex: 1 1 130px;
         }
-        .ad-input:focus, .ad-select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(217,164,64,0.25); }
+        .ad-input:focus, .ad-select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(217,164,64,.25); }
         .ad-btn {
           padding: 9px 18px; border-radius: 7px; border: 1px solid var(--ink);
           background: var(--ink); color: var(--paper); font-family: inherit;
           font-size: 13.5px; font-weight: 600; cursor: pointer;
-          transition: filter 0.15s ease, transform 0.1s ease;
+          transition: filter .15s, transform .1s; flex-shrink: 0;
         }
-        .ad-btn:hover { filter: brightness(1.15); }
-        .ad-btn:active { transform: scale(0.97); }
+        .ad-btn:hover  { filter: brightness(1.15); }
+        .ad-btn:active { transform: scale(.97); }
         .ad-btn-ghost {
-          padding: 9px 14px; border-radius: 7px; border: 1px dashed #c9bd9b;
+          padding: 8px 13px; border-radius: 7px; border: 1px dashed #c9bd9b;
           background: transparent; color: var(--muted); font-family: inherit;
-          font-size: 13px; cursor: pointer;
+          font-size: 13px; cursor: pointer; flex-shrink: 0;
         }
         .ad-btn-ghost:hover { color: var(--ink); border-color: var(--ink-line); }
 
-        .ad-sort-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        /* sort group goes full-width on wrap */
+        .ad-sort-group { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; width: 100%; }
         .ad-sort-group label {
-          font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em;
+          font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .06em;
           text-transform: uppercase; color: var(--muted); white-space: nowrap;
         }
         .ad-sort-dir-btn {
           display: flex; align-items: center; gap: 6px;
           padding: 9px 12px; border-radius: 7px; border: 1px solid #ddd3b8;
           background: var(--card); color: var(--ink-soft); font-family: inherit;
-          font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+          font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0;
         }
         .ad-sort-dir-btn:hover { border-color: var(--ink-line); }
         .ad-sort-dir-btn .ad-sort-arrow { display: inline-flex; color: var(--gold); }
         .ad-sort-icon { display: inline-block; vertical-align: -2px; }
 
+        /* ── table — horizontal scroll wrapper ── */
         .ad-table-wrap {
           background: var(--card); border: 1px solid #e9e1cd; border-radius: 12px;
-          overflow: hidden; box-shadow: 0 2px 10px rgba(21,41,31,0.06);
+          overflow: hidden; box-shadow: 0 2px 10px rgba(21,41,31,.06);
+          overflow-x: auto; -webkit-overflow-scrolling: touch;
         }
-        .ad-table { width: 100%; border-collapse: collapse; }
+        .ad-table { width: 100%; border-collapse: collapse; min-width: 380px; }
         .ad-table thead tr { background: var(--ink); }
         .ad-table th {
-          padding: 12px 16px; text-align: left; cursor: pointer; user-select: none;
+          padding: 12px 14px; text-align: left; cursor: pointer; user-select: none;
           color: var(--gold-soft); font-family: 'IBM Plex Mono', monospace;
-          font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+          font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
         }
         .ad-table th span { color: var(--gold); margin-left: 4px; }
-        .ad-table td { padding: 13px 16px; font-size: 13.5px; border-bottom: 1px solid #f0eada; }
+        .ad-table td {
+          padding: 12px 14px; font-size: 13.5px; border-bottom: 1px solid #f0eada;
+          max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
         .ad-table tbody tr:last-child td { border-bottom: none; }
         .ad-table tbody tr:hover { background: #fbf4e2; }
 
         .ad-role-pill {
-          font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em;
+          font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .06em;
           text-transform: uppercase; padding: 3px 8px; border-radius: 20px;
-          background: #eef1ec; color: var(--ink-soft); width: fit-content;
+          background: #eef1ec; color: var(--ink-soft); display: inline-block;
         }
-        .ad-role-pill.role-admin { background: var(--gold-soft); color: #6b4d10; }
+        .ad-role-pill.role-admin       { background: var(--gold-soft); color: #6b4d10; }
         .ad-role-pill.role-store_owner { background: #e4dcc8; color: var(--ink); }
 
-        .ad-stars { display: inline-flex; align-items: center; gap: 8px; }
+        .ad-stars       { display: inline-flex; align-items: center; gap: 8px; }
         .ad-stars-icons { display: inline-flex; gap: 1px; }
         .ad-stars-value { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--muted); }
-        .ad-norating { color: var(--muted); font-size: 12.5px; font-style: italic; }
+        .ad-norating    { color: var(--muted); font-size: 12.5px; font-style: italic; }
+        .ad-empty       { padding: 36px 14px; text-align: center; color: var(--muted); font-size: 13.5px; }
 
-        .ad-empty { padding: 36px 16px; text-align: center; color: var(--muted); font-size: 13.5px; }
-
+        /* ── form card — full-width on mobile ── */
         .ad-form-card {
           background: var(--card); border: 1px solid #e9e1cd; border-radius: 12px;
-          padding: 28px; width: 440px; box-shadow: 0 2px 10px rgba(21,41,31,0.06);
+          padding: 24px; width: 100%; max-width: 440px;
+          box-shadow: 0 2px 10px rgba(21,41,31,.06); box-sizing: border-box;
         }
         .ad-form-card h3 { margin: 0 0 18px; font-size: 16px; font-weight: 700; }
-        .ad-field { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .ad-field { margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px; }
         .ad-field label {
-          font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.07em;
+          font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .07em;
           text-transform: uppercase; color: var(--muted);
         }
-        .ad-field .ad-input { width: 100%; }
+        .ad-field .ad-input { width: 100%; box-sizing: border-box; flex: none; }
         .ad-field-error { margin: 0; color: var(--danger); font-size: 12px; }
 
         .ad-banner {
@@ -385,9 +362,20 @@ const AdminDashboard = () => {
           border-radius: 8px; font-size: 13px; margin-bottom: 14px;
         }
         .ad-banner svg { stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
-        .ad-banner-error { background: #fbeae3; color: var(--danger); }
+        .ad-banner-error   { background: #fbeae3; color: var(--danger); }
         .ad-banner-success { background: #e9f3ec; color: var(--ok); }
         .ad-banner p { margin: 0; }
+
+        /* ── submit btn full-width on form ── */
+        .ad-form-submit { width: 100%; margin-top: 4px; }
+
+        /* ── responsive breakpoints ── */
+        @media (max-width: 480px) {
+          .ad-head h2 { font-size: 19px; }
+          .ad-stat-value { font-size: 26px; }
+          .ad-toolbar { gap: 6px; }
+          .ad-sort-group { margin-left: 0; }
+        }
       `}</style>
 
       <div className="ad-head">
@@ -395,6 +383,7 @@ const AdminDashboard = () => {
         <p>Manage accounts, storefronts, and platform activity.</p>
       </div>
 
+      {/* Tabs */}
       <div className="ad-tabs">
         {TABS.map((tab) => (
           <button
@@ -409,88 +398,78 @@ const AdminDashboard = () => {
       </div>
       <div className="ad-tear" aria-hidden="true" />
 
-      {/* Dashboard */}
-{activeTab === 'dashboard' && (
-  <div>
-    <div className="ad-stats">
-      {[
-        { label: 'Total Users', value: stats.totalUsers, icon: 'user' },
-        { label: 'Total Stores', value: stats.totalStores, icon: 'store' },
-        { label: 'Total Ratings', value: stats.totalRatings, icon: 'star' },
-      ].map((s) => (
-        <div key={s.label} className="ad-stat-card">
-          <span className="ad-stat-icon">{Icon[s.icon]({ style: { fill: s.icon === 'star' ? 'currentColor' : 'none' } })}</span>
-          <span className="ad-stat-value">{s.value ?? '—'}</span>
-          <span className="ad-stat-label">{s.label}</span>
-        </div>
-      ))}
-    </div>
+      {/* ── Dashboard ── */}
+      {activeTab === 'dashboard' && (
+        <div>
+          <div className="ad-stats">
+            {[
+              { label: 'Total Users',   value: stats.totalUsers,   icon: 'user' },
+              { label: 'Total Stores',  value: stats.totalStores,  icon: 'store' },
+              { label: 'Total Ratings', value: stats.totalRatings, icon: 'star' },
+            ].map((s) => (
+              <div key={s.label} className="ad-stat-card">
+                <span className="ad-stat-icon">
+                  {Icon[s.icon]({ style: { fill: s.icon === 'star' ? 'currentColor' : 'none' } })}
+                </span>
+                <span className="ad-stat-value">{s.value ?? '—'}</span>
+                <span className="ad-stat-label">{s.label}</span>
+              </div>
+            ))}
+          </div>
 
-    <div style={{ display: 'flex', gap: '24px', marginTop: '28px', flexWrap: 'wrap' }}>
-      {/* Recent Users */}
-      <div style={{ flex: 1, minWidth: '300px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>Recent Users</h3>
-          <button className="ad-btn-ghost" style={{ padding: '5px 10px', fontSize: '12px' }} onClick={() => setActiveTab('users')}>View all</button>
-        </div>
-        <div className="ad-table-wrap">
-          <table className="ad-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 ? (
-                <tr><td colSpan={3} className="ad-empty">No users yet.</td></tr>
-              ) : users.slice(0, 5).map((u) => (
-                <tr key={u.id}>
-                  <td>{u.name}</td>
-                  <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{u.email}</td>
-                  <td><span className={`ad-role-pill role-${u.role}`}>{u.role?.replace('_', ' ')}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <div className="ad-recent-grid">
+            {/* Recent Users */}
+            <div>
+              <h3 className="ad-recent-section" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, fontSize:14, fontWeight:700, letterSpacing:'.04em' }}>
+                Recent Users
+                <button className="ad-btn-ghost" style={{ padding: '5px 10px', fontSize: '12px' }} onClick={() => setActiveTab('users')}>View all</button>
+              </h3>
+              <div className="ad-table-wrap">
+                <table className="ad-table" style={{ minWidth: 280 }}>
+                  <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+                  <tbody>
+                    {users.length === 0
+                      ? <tr><td colSpan={3} className="ad-empty">No users yet.</td></tr>
+                      : users.slice(0, 5).map((u) => (
+                        <tr key={u.id}>
+                          <td>{u.name}</td>
+                          <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{u.email}</td>
+                          <td><span className={`ad-role-pill role-${u.role}`}>{u.role?.replace('_', ' ')}</span></td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-      {/* Recent Stores */}
-      <div style={{ flex: 1, minWidth: '300px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>Recent Stores</h3>
-          <button className="ad-btn-ghost" style={{ padding: '5px 10px', fontSize: '12px' }} onClick={() => setActiveTab('stores')}>View all</button>
+            {/* Recent Stores */}
+            <div>
+              <h3 style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, fontSize:14, fontWeight:700, letterSpacing:'.04em' }}>
+                Recent Stores
+                <button className="ad-btn-ghost" style={{ padding: '5px 10px', fontSize: '12px' }} onClick={() => setActiveTab('stores')}>View all</button>
+              </h3>
+              <div className="ad-table-wrap">
+                <table className="ad-table" style={{ minWidth: 280 }}>
+                  <thead><tr><th>Name</th><th>Address</th><th>Avg Rating</th></tr></thead>
+                  <tbody>
+                    {stores.length === 0
+                      ? <tr><td colSpan={3} className="ad-empty">No stores yet.</td></tr>
+                      : stores.slice(0, 5).map((s) => (
+                        <tr key={s.id}>
+                          <td>{s.name}</td>
+                          <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{s.address}</td>
+                          <td><Stars value={s.averageRating} /></td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="ad-table-wrap">
-          <table className="ad-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Avg Rating</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stores.length === 0 ? (
-                <tr><td colSpan={3} className="ad-empty">No stores yet.</td></tr>
-              ) : stores.slice(0, 5).map((s) => (
-                <tr key={s.id}>
-                  <td>{s.name}</td>
-                  <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{s.address}</td>
-                  <td><Stars value={s.averageRating} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
-      {/* Users */}
+      {/* ── Users ── */}
       {activeTab === 'users' && (
         <div>
           <div className="ad-toolbar">
@@ -504,30 +483,26 @@ const AdminDashboard = () => {
                 onKeyDown={handleFilterKeyDown}
               />
             ))}
-            <select
-              className="ad-select"
-              value={filters.role}
-              onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-            >
+            <select className="ad-select" value={filters.role} onChange={(e) => setFilters({ ...filters, role: e.target.value })}>
               {ROLE_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
             <button className="ad-btn" onClick={fetchUsers}>Filter</button>
-            {hasActiveFilters && (
-              <button className="ad-btn-ghost" onClick={clearFilters}>Clear filters</button>
-            )}
+            {hasActiveFilters && <button className="ad-btn-ghost" onClick={clearFilters}>Clear filters</button>}
             <div className="ad-sort-group">
               <label htmlFor="user-sort-field">Sort by</label>
               <select
                 id="user-sort-field"
                 className="ad-select"
                 value={userSort.key}
-                onChange={(e) => setUserSort((prev) => ({ ...prev, key: e.target.value }))}
+                onChange={(e) => setUserSort((p) => ({ ...p, key: e.target.value }))}
               >
                 {USER_SORT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
               <button type="button" className="ad-sort-dir-btn" onClick={toggleUserSortDir}>
                 {userSort.dir === 'asc' ? 'Ascending' : 'Descending'}
-                <span className="ad-sort-arrow">{userSort.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</span>
+                <span className="ad-sort-arrow">
+                  {userSort.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </span>
               </button>
             </div>
           </div>
@@ -545,23 +520,23 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {sortedUsers.length === 0 ? (
-                  <tr><td colSpan={4} className="ad-empty">No matching accounts — try adjusting your filters.</td></tr>
-                ) : sortedUsers.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>{u.address}</td>
-                    <td><span className={`ad-role-pill role-${u.role}`}>{u.role?.replace('_', ' ')}</span></td>
-                  </tr>
-                ))}
+                {sortedUsers.length === 0
+                  ? <tr><td colSpan={4} className="ad-empty">No matching accounts — try adjusting your filters.</td></tr>
+                  : sortedUsers.map((u) => (
+                    <tr key={u.id}>
+                      <td>{u.name}</td>
+                      <td>{u.email}</td>
+                      <td>{u.address}</td>
+                      <td><span className={`ad-role-pill role-${u.role}`}>{u.role?.replace('_', ' ')}</span></td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Stores */}
+      {/* ── Stores ── */}
       {activeTab === 'stores' && (
         <div>
           <div className="ad-toolbar">
@@ -571,13 +546,15 @@ const AdminDashboard = () => {
                 id="store-sort-field"
                 className="ad-select"
                 value={storeSort.key}
-                onChange={(e) => setStoreSort((prev) => ({ ...prev, key: e.target.value }))}
+                onChange={(e) => setStoreSort((p) => ({ ...p, key: e.target.value }))}
               >
                 {STORE_SORT_FIELDS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
               <button type="button" className="ad-sort-dir-btn" onClick={toggleStoreSortDir}>
                 {storeSort.dir === 'asc' ? 'Ascending' : 'Descending'}
-                <span className="ad-sort-arrow">{storeSort.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</span>
+                <span className="ad-sort-arrow">
+                  {storeSort.dir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </span>
               </button>
             </div>
           </div>
@@ -594,31 +571,31 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {sortedStores.length === 0 ? (
-                  <tr><td colSpan={4} className="ad-empty">No stores registered yet.</td></tr>
-                ) : sortedStores.map((s) => (
-                  <tr key={s.id}>
-                    <td>{s.name}</td>
-                    <td>{s.email}</td>
-                    <td>{s.address}</td>
-                    <td><Stars value={s.averageRating} /></td>
-                  </tr>
-                ))}
+                {sortedStores.length === 0
+                  ? <tr><td colSpan={4} className="ad-empty">No stores registered yet.</td></tr>
+                  : sortedStores.map((s) => (
+                    <tr key={s.id}>
+                      <td>{s.name}</td>
+                      <td>{s.email}</td>
+                      <td>{s.address}</td>
+                      <td><Stars value={s.averageRating} /></td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Add User */}
+      {/* ── Add User ── */}
       {activeTab === 'addUser' && (
         <div className="ad-form-card">
           <h3>Add New User</h3>
           {errors.api && (
-            <div className="ad-banner ad-banner-error"><Icon.alert />{' '}<p className="error">{errors.api}</p></div>
+            <div className="ad-banner ad-banner-error"><Icon.alert />{' '}<p>{errors.api}</p></div>
           )}
           {success && (
-            <div className="ad-banner ad-banner-success"><Icon.check />{' '}<p className="success">{success}</p></div>
+            <div className="ad-banner ad-banner-success"><Icon.check />{' '}<p>{success}</p></div>
           )}
           <form onSubmit={handleAddUser} autoComplete="off">
             {['name', 'email', 'address', 'password'].map((field) => (
@@ -632,14 +609,14 @@ const AdminDashboard = () => {
                   value={userForm[field]}
                   onChange={(e) => setUserForm({ ...userForm, [field]: e.target.value })}
                 />
-                {errors[field] && <p className="ad-field-error error">{errors[field]}</p>}
+                {errors[field] && <p className="ad-field-error">{errors[field]}</p>}
               </div>
             ))}
             <div className="ad-field">
               <label>Role</label>
               <select
                 className="ad-select"
-                style={{ width: '100%' }}
+                style={{ width: '100%', flex: 'none' }}
                 name="new-user-role"
                 autoComplete="off"
                 value={userForm.role}
@@ -650,20 +627,20 @@ const AdminDashboard = () => {
                 <option value="store_owner">Store owner</option>
               </select>
             </div>
-            <button type="submit" className="ad-btn">Add User</button>
+            <button type="submit" className="ad-btn ad-form-submit">Add User</button>
           </form>
         </div>
       )}
 
-      {/* Add Store */}
+      {/* ── Add Store ── */}
       {activeTab === 'addStore' && (
         <div className="ad-form-card">
           <h3>Add New Store</h3>
           {errors.api && (
-            <div className="ad-banner ad-banner-error"><Icon.alert />{' '}<p className="error">{errors.api}</p></div>
+            <div className="ad-banner ad-banner-error"><Icon.alert />{' '}<p>{errors.api}</p></div>
           )}
           {success && (
-            <div className="ad-banner ad-banner-success"><Icon.check />{' '}<p className="success">{success}</p></div>
+            <div className="ad-banner ad-banner-success"><Icon.check />{' '}<p>{success}</p></div>
           )}
           <form onSubmit={handleAddStore} autoComplete="off">
             {['name', 'email', 'address'].map((field) => (
@@ -677,7 +654,7 @@ const AdminDashboard = () => {
                   value={storeForm[field]}
                   onChange={(e) => setStoreForm({ ...storeForm, [field]: e.target.value })}
                 />
-                {errors[field] && <p className="ad-field-error error">{errors[field]}</p>}
+                {errors[field] && <p className="ad-field-error">{errors[field]}</p>}
               </div>
             ))}
             <div className="ad-field">
@@ -691,7 +668,7 @@ const AdminDashboard = () => {
                 onChange={(e) => setStoreForm({ ...storeForm, ownerId: e.target.value })}
               />
             </div>
-            <button type="submit" className="ad-btn">Add Store</button>
+            <button type="submit" className="ad-btn ad-form-submit">Add Store</button>
           </form>
         </div>
       )}
