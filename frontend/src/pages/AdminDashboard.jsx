@@ -212,22 +212,19 @@ const AdminDashboard = () => {
         .ad-head h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: 0.1px; }
         .ad-head p  { margin: 0; color: var(--muted); font-size: 13.5px; }
 
-        /* ── tabs — horizontal scroll on mobile ── */
+        /* ── tabs — wrap onto multiple rows so every tab stays visible, never hidden behind scroll ── */
         .ad-tabs {
-          display: flex; gap: 4px;
+          display: flex; flex-wrap: wrap; gap: 4px 4px;
           border-bottom: 1px solid #e4dcc8;
-          overflow-x: auto; scrollbar-width: none;
-          -webkit-overflow-scrolling: touch;
         }
-        .ad-tabs::-webkit-scrollbar { display: none; }
         .ad-tab {
-          display: flex; align-items: center; gap: 7px;
+          display: flex; align-items: center; justify-content: center; gap: 7px;
           background: none; border: none; cursor: pointer;
           padding: 0 10px 12px;
           font-family: inherit; font-size: 13.5px; font-weight: 600;
           color: var(--muted); border-bottom: 2px solid transparent;
           transition: color .15s, border-color .15s;
-          white-space: nowrap; flex-shrink: 0;
+          white-space: nowrap; flex: 1 1 auto;
         }
         .ad-tab svg { stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
         .ad-tab:hover    { color: var(--ink-soft); }
@@ -375,6 +372,9 @@ const AdminDashboard = () => {
           .ad-stat-value { font-size: 26px; }
           .ad-toolbar { gap: 6px; }
           .ad-sort-group { margin-left: 0; }
+          .ad-tabs { justify-content: center; gap: 2px 4px; }
+          .ad-tab { padding: 0 8px 10px; font-size: 12.5px; gap: 5px; flex: 0 1 auto; }
+          .ad-tab svg { width: 14px; height: 14px; }
         }
       `}</style>
 
