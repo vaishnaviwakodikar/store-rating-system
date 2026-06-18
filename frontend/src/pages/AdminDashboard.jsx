@@ -410,21 +410,85 @@ const AdminDashboard = () => {
       <div className="ad-tear" aria-hidden="true" />
 
       {/* Dashboard */}
-      {activeTab === 'dashboard' && (
-        <div className="ad-stats">
-          {[
-            { label: 'Total Users', value: stats.totalUsers, icon: 'user' },
-            { label: 'Total Stores', value: stats.totalStores, icon: 'store' },
-            { label: 'Total Ratings', value: stats.totalRatings, icon: 'star' },
-          ].map((s) => (
-            <div key={s.label} className="ad-stat-card">
-              <span className="ad-stat-icon">{Icon[s.icon]({ style: { fill: s.icon === 'star' ? 'currentColor' : 'none' } })}</span>
-              <span className="ad-stat-value">{s.value ?? '—'}</span>
-              <span className="ad-stat-label">{s.label}</span>
-            </div>
-          ))}
+{activeTab === 'dashboard' && (
+  <div>
+    <div className="ad-stats">
+      {[
+        { label: 'Total Users', value: stats.totalUsers, icon: 'user' },
+        { label: 'Total Stores', value: stats.totalStores, icon: 'store' },
+        { label: 'Total Ratings', value: stats.totalRatings, icon: 'star' },
+      ].map((s) => (
+        <div key={s.label} className="ad-stat-card">
+          <span className="ad-stat-icon">{Icon[s.icon]({ style: { fill: s.icon === 'star' ? 'currentColor' : 'none' } })}</span>
+          <span className="ad-stat-value">{s.value ?? '—'}</span>
+          <span className="ad-stat-label">{s.label}</span>
         </div>
-      )}
+      ))}
+    </div>
+
+    <div style={{ display: 'flex', gap: '24px', marginTop: '28px', flexWrap: 'wrap' }}>
+      {/* Recent Users */}
+      <div style={{ flex: 1, minWidth: '300px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>Recent Users</h3>
+          <button className="ad-btn-ghost" style={{ padding: '5px 10px', fontSize: '12px' }} onClick={() => setActiveTab('users')}>View all</button>
+        </div>
+        <div className="ad-table-wrap">
+          <table className="ad-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr><td colSpan={3} className="ad-empty">No users yet.</td></tr>
+              ) : users.slice(0, 5).map((u) => (
+                <tr key={u.id}>
+                  <td>{u.name}</td>
+                  <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{u.email}</td>
+                  <td><span className={`ad-role-pill role-${u.role}`}>{u.role?.replace('_', ' ')}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Recent Stores */}
+      <div style={{ flex: 1, minWidth: '300px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>Recent Stores</h3>
+          <button className="ad-btn-ghost" style={{ padding: '5px 10px', fontSize: '12px' }} onClick={() => setActiveTab('stores')}>View all</button>
+        </div>
+        <div className="ad-table-wrap">
+          <table className="ad-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Avg Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stores.length === 0 ? (
+                <tr><td colSpan={3} className="ad-empty">No stores yet.</td></tr>
+              ) : stores.slice(0, 5).map((s) => (
+                <tr key={s.id}>
+                  <td>{s.name}</td>
+                  <td style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{s.address}</td>
+                  <td><Stars value={s.averageRating} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Users */}
       {activeTab === 'users' && (
